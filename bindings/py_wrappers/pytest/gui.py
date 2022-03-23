@@ -4,9 +4,11 @@ import time
 import sys
 sys.path.append("./bindings/py_wrappers/libdogecoin/")
 import wrappers as w
+import dogecoinrpc
+
 
 # HELPER METHODS
-def display_radiobutton_choice(frame, choices):
+def display_radiobutton_user_choice(frame, choices):
 
     #display menu
     selection = tk.IntVar()
@@ -24,7 +26,7 @@ def display_radiobutton_choice(frame, choices):
     return int(user_choice.get())
 
 
-def receive_entry(frame, prompt):
+def receive_user_entry(frame, prompt):
 
     #write prompt
     msg = tk.Label(frame, text=prompt)
@@ -42,8 +44,21 @@ def receive_entry(frame, prompt):
     #return result
     return str(user_response.get())
 
-
 def display_output(frame, labs, vals):
+
+    labels = [None]*len(labs)
+    values = [None]*len(vals)
+    copy_buttons = [None]*len(vals)
+
+    for i in range(len(labs)):
+        labels[i] = tk.Label(frame, text=labs[i], justify=tk.CENTER)
+        labels[i].grid(row=3*i, sticky="nesw", columnspan=2)
+        values[i] = tk.Label(frame, text=vals[i], justify=tk.LEFT, wraplength=int(win_width*0.5))
+        values[i].grid(row=(3*i)+1, sticky="nesw", columnspan=2)
+        copy_buttons[i] = tk.Button(frame, text="Copy to clipboard", command=lambda: copy_to_clipboard(vals[i]))
+        copy_buttons[i].grid(row=(3*i)+2, sticky="nesw", columnspan=2, padx=5, pady=5)
+
+def display_copyable_output(frame, labs, vals):
 
     labels = [None]*len(labs)
     values = [None]*len(vals)
@@ -79,41 +94,60 @@ def gen_keypair(in_frame, out_frame):
     clear_frame(in_frame)
     clear_frame(out_frame)
     chain_list = ["Main", "Testnet"]
-    chain = display_radiobutton_choice(in_frame, chain_list)
+    chain = display_radiobutton_user_choice(in_frame, chain_list)
 
     if user_choice.get() != -1:
         user_choice.set(None)
         res = w.generate_priv_pub_key_pair(chain_code=chain)
         labels = ["Wif-encoded private key:", "P2PKH address:"]
         values = list(res)
-        display_output(out_frame, labels, values)
+        display_copyable_output(out_frame, labels, values)
 
 def gen_hdkeypair(in_frame, out_frame):
     clear_frame(in_frame)
     clear_frame(out_frame)
     chain_list = ["Main", "Testnet"]
-    chain = display_radiobutton_choice(in_frame, chain_list)
+    chain = display_radiobutton_user_choice(in_frame, chain_list)
 
     if user_choice.get() != -1:
         user_choice.set(None)
         res = w.generate_hd_master_pub_key_pair(chain_code=chain)
         labels = ["Wif-encoded master private key:", "P2PKH master public key:"]
         values = list(res)
-        display_output(out_frame, labels, values)
+        display_copyable_output(out_frame, labels, values)
 
 def derive_child(in_frame, out_frame):
     clear_frame(in_frame)
     clear_frame(out_frame)
-    master_key = receive_entry(in_frame, "Enter the master private key")
+    master_key = receive_user_entry(in_frame, "Enter the master private key")
 
     if user_response.get() != "err":
         user_response.set(None)
         res = w.generate_derived_hd_pub_key(master_key)
         labels = ["Derived child P2PKH public key"]
         values = [res]
-        display_output(out_frame, labels, values)
+        display_copyable_output(out_frame, labels, values)
 
+def verify_address(in_frame, out_frame):
+    clear_frame(in_frame)
+    clear_frame(out_frame)
+    address = receive_user_entry(in_frame, "Enter p2pkh address:")
+    clear_frame(in_frame)
+    if w.verify_p2pkh_address(address):
+        result = "Address is valid."
+    else:
+        result = "Address is invalid."
+    message = tk.Label(out_frame, text=result, justify=tk.CENTER)
+    message.grid()
+    
+
+def send_tx(in_frame, out_frame):
+    pass
+
+
+# FRAME CONTROL
 def display_main():
+    # set up frames
     operation_frame = tk.Frame(root, height=win_height/2, width=win_width/3, borderwidth=2, relief="ridge", padx=5, pady=5)
     input_frame = tk.Frame(root, height=win_height/2, width=(2*win_width)/3, borderwidth=2, relief="ridge", padx=5, pady=5)
     output_frame = tk.Frame(root, height=win_height/2, width=win_width, borderwidth=2, relief="ridge", padx=5, pady=5)
@@ -127,12 +161,18 @@ def display_main():
     root.grid_columnconfigure(1, weight=1)
     root.grid_columnconfigure(2, weight=2)
     
-    button1 = tk.Button(operation_frame, text="Generate private/public keypair", command=lambda: gen_keypair(input_frame, output_frame))
-    button2 = tk.Button(operation_frame, text="Generate HD private/public keypair", command=lambda: gen_hdkeypair(input_frame, output_frame))
-    button3 = tk.Button(operation_frame, text="Derive child key from HD master key", command=lambda: derive_child(input_frame, output_frame))
-    button1.grid(column=0, row=0, sticky="nesw", pady=5, padx=5)
-    button2.grid(column=0, row=1, sticky="nesw", pady=5, padx=5) 
-    button3.grid(column=0, row=2, sticky="nesw", pady=5, padx=5)
+    # function options
+    function_options = [("Generate private/public keypair",         lambda: gen_keypair(input_frame, output_frame)),
+                        ("Generate HD private/public keypair",      lambda: gen_hdkeypair(input_frame, output_frame)),
+                        ("Derive child key from HD master key",     lambda: derive_child(input_frame, output_frame)),
+                        ("Verify address",                          lambda: verify_address(input_frame, output_frame)),
+                        ("Send transaction",                        lambda: send_tx(input_frame, output_frame))]
+
+    # populate operation frame
+    op_buttons = [None]*len(function_options)
+    for i in range(len(function_options)):
+        op_buttons[i] = tk.Button(operation_frame, text=function_options[i][0], command=function_options[i][1])
+        op_buttons[i].grid(column=0, row=i, sticky="nesw", pady=5, padx=5)
 
 
 #MAIN
@@ -147,7 +187,7 @@ win_width = int(curr_screen.width*0.4)
 win_height = int(curr_screen.height*0.6)
 x_offset = int((curr_screen.width-win_width)/2)
 y_offset = int((curr_screen.height-win_height)/2)
-root.geometry('{}x{}+{}+{}'.format(win_width, win_height, x_offset, y_offset))
+root.geometry('{}x{}+{}+{}'.format(win_width, win_height, x_offset, y_offset)) # position in screen middle, 60% of the heigh and 40% of the width
 
 #load function library
 dogelib = w.load_libdogecoin()

@@ -1,4 +1,5 @@
-"""This module runs a mini command line interface to test python libdogecoin wrappers."""
+"""This module runs a mini command line interface to test python libdogecoin wrappers.
+   NOTE: requires pip install python-dogecoin"""
 
 import sys
 sys.path.append("./bindings/py_wrappers/libdogecoin/")
