@@ -4,7 +4,7 @@ import time
 import sys
 sys.path.append("./bindings/py_wrappers/libdogecoin/")
 import wrappers as w
-import dogecoinrpc
+import subprocess
 
 
 # HELPER METHODS
@@ -23,7 +23,7 @@ def display_radiobutton_user_choice(frame, choices):
     ok.wait_variable(user_choice)
 
     #return result
-    return int(user_choice.get())
+    return user_choice.get()
 
 
 def receive_user_entry(frame, prompt):
@@ -43,6 +43,10 @@ def receive_user_entry(frame, prompt):
     
     #return result
     return str(user_response.get())
+
+def display_error_output(frame, msg):
+    label = tk.Label(frame, test=msg, justify=tk.CENTER)
+    label.grid()
 
 def display_output(frame, labs, vals):
 
@@ -86,6 +90,7 @@ def clear_frame(frame):
 def on_exit():
     user_choice.set(-1)
     user_response.set("err")
+    stop_server()
     root.destroy()
 
 
@@ -103,6 +108,7 @@ def gen_keypair(in_frame, out_frame):
         values = list(res)
         display_copyable_output(out_frame, labels, values)
 
+
 def gen_hdkeypair(in_frame, out_frame):
     clear_frame(in_frame)
     clear_frame(out_frame)
@@ -116,6 +122,7 @@ def gen_hdkeypair(in_frame, out_frame):
         values = list(res)
         display_copyable_output(out_frame, labels, values)
 
+
 def derive_child(in_frame, out_frame):
     clear_frame(in_frame)
     clear_frame(out_frame)
@@ -128,6 +135,7 @@ def derive_child(in_frame, out_frame):
         values = [res]
         display_copyable_output(out_frame, labels, values)
 
+
 def verify_address(in_frame, out_frame):
     clear_frame(in_frame)
     clear_frame(out_frame)
@@ -139,10 +147,37 @@ def verify_address(in_frame, out_frame):
         result = "Address is invalid."
     message = tk.Label(out_frame, text=result, justify=tk.CENTER)
     message.grid()
-    
+
 
 def send_tx(in_frame, out_frame):
-    pass
+    clear_frame(in_frame)
+    clear_frame(out_frame)
+    priv, pub = w.generate_priv_pub_key_pair()
+    addr = run_cmd_get_output("getnewaddress")
+    run_cmd_get_output(f"generatetoaddress 100 {addr}")
+    #print(run_cmd_get_output("getblockcount"))
+    #print(run_cmd_get_output("getwalletinfo"))
+    print(run_cmd_get_output('addnode "127.0.0.1:18333" add'))
+    print(run_cmd_get_output('getaddednodeinfo'))
+    print(run_cmd_get_output('rpcport=8333 getblockcount'))
+    print(run_cmd_get_output("getconnectioncount"))
+    #print(run_cmd_get_output(f"sendrawtransaction {signed_hex}"))
+    
+
+# RPC METHODS
+def start_server():
+    subprocess.run("dogecoind -regtest &", shell=True)
+
+def stop_server():
+    dogepid = subprocess.run("pidof dogecoind", shell=True, capture_output=True).stdout.decode("utf-8")
+    if dogepid:
+        subprocess.run("dogecoin-cli stop &", shell=True, capture_output=True)
+
+def run_cmd_get_output(cmd):
+    raw_output = subprocess.run("dogecoin-cli "+cmd, shell=True, capture_output=True).stdout
+    str_output = raw_output.decode("utf-8")
+    return str_output
+
 
 
 # FRAME CONTROL
@@ -197,6 +232,10 @@ user_choice = tk.IntVar()
 user_response = tk.StringVar()
 
 #start app
+start_server()
 display_main()
 root.protocol('WM_DELETE_WINDOW', on_exit)
-root.mainloop()
+try:
+    root.mainloop()
+except:
+    on_exit()
