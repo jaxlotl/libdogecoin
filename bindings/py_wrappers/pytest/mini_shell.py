@@ -43,7 +43,7 @@ if __name__ == "__main__":
                 print("private key wif:", res[0])
                 print("public key:", res[1])
 
-        # heirarchical deterministic key pair generation
+        # hierarchical deterministic key pair generation
         elif cmd == "gen_hdkeypair":
             if not args or not args[0].isdigit() or int(args[0])>1:
                 print(cmd+": enter valid chain code (0:main, 1:test)")

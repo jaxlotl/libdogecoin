@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 import screeninfo as scr
 import time
@@ -90,7 +91,7 @@ def clear_frame(frame):
 def on_exit():
     user_choice.set(-1)
     user_response.set("err")
-    stop_server()
+    stop_nodes()
     root.destroy()
 
 
@@ -150,31 +151,78 @@ def verify_address(in_frame, out_frame):
 
 
 def send_tx(in_frame, out_frame):
+    # clear all elements in framce
     clear_frame(in_frame)
     clear_frame(out_frame)
-    priv, pub = w.generate_priv_pub_key_pair()
-    addr = run_cmd_get_output("getnewaddress")
-    run_cmd_get_output(f"generatetoaddress 100 {addr}")
-    #print(run_cmd_get_output("getblockcount"))
-    #print(run_cmd_get_output("getwalletinfo"))
-    print(run_cmd_get_output('addnode "127.0.0.1:18333" add'))
-    print(run_cmd_get_output('getaddednodeinfo'))
-    print(run_cmd_get_output('rpcport=8333 getblockcount'))
-    print(run_cmd_get_output("getconnectioncount"))
-    #print(run_cmd_get_output(f"sendrawtransaction {signed_hex}"))
+
+    # generate keys/addresses
+    addr1 = run_cmd_get_output("getnewaddress").strip()
+    addr2 = run_rpc_cmd_get_output("getnewaddress").strip()
+    priv = run_cmd_get_output(f"dumpprivkey {addr1}")
+
+    # set transaction parameters
+    total = 125000
+    send_amt = 70000
+    fee = 100
+    leftover = total-send_amt
+
+    # create transaction with py wrappers
+    # idx = w.start_transaction()
+    # w.add_utxo(idx, hash2doge, 1)
+    # w.add_utxo(idx, hash10doge, 1)
+    # w.add_output(idx, external_addr1, amt1)
+    # w.make_change(idx, privkey1, external_addr1, fee, amt2)
+    # res = w.finalize_transaction(idx, external_addr1, fee, amt1+amt2)
+    idx = w.start_transaction()
+    w.add_utxo(idx, "888790099b72876f45dc77bef21b8c20a3a1a77c76567aa21a3a4d780340b3ff", 0)
+    w.add_utxo(idx, "ade95d5fddb31d0b6e49b22ea52dd1097281bb641ebab7c3b91a8be1e0237fff", 0)
+    w.add_output(idx, addr2, send_amt)
+    w.make_change(idx, priv, addr2, fee, leftover)
+    res = w.finalize_transaction(idx, addr2, fee, leftover)
+
+    # create transaction with rpc
+    raw_tx = run_cmd_get_output(f'createrawtransaction \'\'\'[{{"txid": "888790099b72876f45dc77bef21b8c20a3a1a77c76567aa21a3a4d780340b3ff", "vout": 0}}]\'\'\' \'\'\'{{"{addr2}":{send_amt}, "{addr1}":{leftover}}}\'\'\'')
+    
+    # compare outputs
+    print(res)
+    print(raw_tx)
+
+    # sign transaction
+    json_result = json.loads(run_cmd_get_output(f'signrawtransaction {res}'))
+    signed_tx = json_result["hex"]
+
+    # check transaction contents
+    print(run_cmd_get_output(f'decoderawtransaction {signed_tx}'))
+    # print(signed_tx)
+    # print(run_cmd_get_output(f'sendrawtransaction {signed_tx}'))
+    # print(run_cmd_get_output("getbalance"))
+    # print(run_rpc_cmd_get_output("getbalance"))
     
 
 # RPC METHODS
 def start_server():
-    subprocess.run("dogecoind -regtest &", shell=True)
+    conf_path = "../.dogecoin/dogecoin.conf"
+    subprocess.run(f"dogecoind -regtest -conf={conf_path} &", shell=True) # assigned to port 18443 in conf
+    # satoshi password:   ODywh9M6DF8U8GU7YFhNDwG0NnlG5BVSAABW7ahes8A=
 
-def stop_server():
+def start_node2():
+    conf_path = "../.dogecoin/dogecoin-client.conf" #TODO: can you get this dynamically
+    subprocess.run(f"dogecoind -regtest -rpcport={node2_rpcport} -conf={conf_path} &", shell=True) # assigned to port 18444 in conf
+    # satoshi2 password:   CzTZr8-hQ1LniGNi-KFD8f6BPZsqbHdsLUhpGD7M8TI=
+
+def stop_nodes():
     dogepid = subprocess.run("pidof dogecoind", shell=True, capture_output=True).stdout.decode("utf-8")
     if dogepid:
-        subprocess.run("dogecoin-cli stop &", shell=True, capture_output=True)
+        run_cmd_get_output("stop")
+        run_rpc_cmd_get_output("stop")
 
 def run_cmd_get_output(cmd):
-    raw_output = subprocess.run("dogecoin-cli "+cmd, shell=True, capture_output=True).stdout
+    raw_output = subprocess.run(f"dogecoin-cli -regtest {cmd}", shell=True, capture_output=True).stdout
+    str_output = raw_output.decode("utf-8")
+    return str_output
+
+def run_rpc_cmd_get_output(cmd):
+    raw_output = subprocess.run(f"dogecoin-cli -regtest -rpcport={node2_rpcport} -rpcuser={node2_rpcuser} -rpcpassword={node2_rpcpwd} {cmd}", shell=True, capture_output=True).stdout
     str_output = raw_output.decode("utf-8")
     return str_output
 
@@ -233,6 +281,10 @@ user_response = tk.StringVar()
 
 #start app
 start_server()
+node2_rpcport = 8333
+node2_rpcuser = "satoshi2"
+node2_rpcpwd = "CzTZr8-hQ1LniGNi-KFD8f6BPZsqbHdsLUhpGD7M8TI="
+start_node2()
 display_main()
 root.protocol('WM_DELETE_WINDOW', on_exit)
 try:
