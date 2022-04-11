@@ -5,6 +5,7 @@ import time
 import sys
 sys.path.append("./bindings/py_wrappers/libdogecoin/")
 import wrappers as w
+import ctypes as ct
 import subprocess
 
 
@@ -155,21 +156,39 @@ def send_tx(in_frame, out_frame):
     clear_frame(in_frame)
     clear_frame(out_frame)
 
+    # read unspent transaction info
+    utxos = run_cmd_get_output("listunspent").split("},\n")
+    s = utxos[-1].translate({ord(x): None for x in "{[]}"})
+    most_recent = json.loads(f"{{{s}}}")
+
+    # assign input information to variables
+    inp_txid = most_recent["txid"]
+    inp_vout = most_recent["vout"]
+    inp_addr = most_recent["address"]
+    inp_account = most_recent["account"]
+    inp_scriptpk = most_recent["scriptPubKey"]
+    inp_amount = most_recent["amount"]
+    inp_confs = most_recent["confirmations"]
+    inp_spendable = most_recent["spendable"]
+    inp_solvable = most_recent["solvable"]
+
     # generate keys/addresses
-    addr1 = run_cmd_get_output("getnewaddress").strip()
+    addr1 = inp_addr
     addr2 = run_rpc_cmd_get_output("getnewaddress").strip()
     priv = run_cmd_get_output(f"dumpprivkey {addr1}")
+    addr1_ptr = ct.c_char_p(addr1.encode("utf-8"))
+    dogelib.dogecoin_p2pkh_to_script_hash.restype = ct.c_void_p
+    script_pubkey = dogelib.dogecoin_p2pkh_to_script_hash(addr1_ptr)
+    script_pubkey = ct.c_char_p(script_pubkey).value.decode("utf-8")
 
     # set transaction parameters
-    total = 125000
-    send_amt = 70000
+    total = inp_amount # will spend the entire utxo
     fee = 100
-    leftover = total-send_amt
+    send_amt = total-fee
 
     # create transaction with py wrappers
     idx = w.start_transaction()
-    w.add_utxo(idx, "888790099b72876f45dc77bef21b8c20a3a1a77c76567aa21a3a4d780340b3ff", 1)
-    w.add_utxo(idx, "ade95d5fddb31d0b6e49b22ea52dd1097281bb641ebab7c3b91a8be1e0237fff", 1)
+    w.add_utxo(idx, inp_txid, inp_vout)
     w.add_output(idx, addr2, send_amt)
     raw_tx = w.finalize_transaction(idx, addr2, fee, total, addr1)
 
@@ -177,12 +196,13 @@ def send_tx(in_frame, out_frame):
     print(raw_tx)
 
     # sign transaction
-    json_result = json.loads(run_cmd_get_output(f'signrawtransaction {raw_tx}'))
-    signed_tx = json_result["hex"]
-    # rawhex = w.sign_raw_transaction(0, rawhex, )
+    # json_result = json.loads(run_cmd_get_output(f'signrawtransaction {raw_tx}'))
+    # signed_tx = json_result["hex"]
+    # signed_tx = w.sign_raw_transaction(0, raw_tx, script_pubkey, 1, total, priv)
+    # print(signed_tx)
 
     # check transaction contents
-    print(run_cmd_get_output(f'decoderawtransaction {signed_tx}'))
+    # print(run_cmd_get_output(f'decoderawtransaction {signed_tx}'))
     # print(signed_tx)
     # print(run_cmd_get_output(f'sendrawtransaction {signed_tx}'))
     # print(run_cmd_get_output("getbalance"))
