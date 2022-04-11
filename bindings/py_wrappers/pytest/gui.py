@@ -151,7 +151,7 @@ def verify_address(in_frame, out_frame):
 
 
 def send_tx(in_frame, out_frame):
-    # clear all elements in framce
+    # clear all elements in frame
     clear_frame(in_frame)
     clear_frame(out_frame)
 
@@ -167,29 +167,19 @@ def send_tx(in_frame, out_frame):
     leftover = total-send_amt
 
     # create transaction with py wrappers
-    # idx = w.start_transaction()
-    # w.add_utxo(idx, hash2doge, 1)
-    # w.add_utxo(idx, hash10doge, 1)
-    # w.add_output(idx, external_addr1, amt1)
-    # w.make_change(idx, privkey1, external_addr1, fee, amt2)
-    # res = w.finalize_transaction(idx, external_addr1, fee, amt1+amt2)
     idx = w.start_transaction()
-    w.add_utxo(idx, "888790099b72876f45dc77bef21b8c20a3a1a77c76567aa21a3a4d780340b3ff", 0)
-    w.add_utxo(idx, "ade95d5fddb31d0b6e49b22ea52dd1097281bb641ebab7c3b91a8be1e0237fff", 0)
+    w.add_utxo(idx, "888790099b72876f45dc77bef21b8c20a3a1a77c76567aa21a3a4d780340b3ff", 1)
+    w.add_utxo(idx, "ade95d5fddb31d0b6e49b22ea52dd1097281bb641ebab7c3b91a8be1e0237fff", 1)
     w.add_output(idx, addr2, send_amt)
-    w.make_change(idx, priv, addr2, fee, leftover)
-    res = w.finalize_transaction(idx, addr2, fee, leftover)
+    raw_tx = w.finalize_transaction(idx, addr2, fee, total, addr1)
 
-    # create transaction with rpc
-    raw_tx = run_cmd_get_output(f'createrawtransaction \'\'\'[{{"txid": "888790099b72876f45dc77bef21b8c20a3a1a77c76567aa21a3a4d780340b3ff", "vout": 0}}]\'\'\' \'\'\'{{"{addr2}":{send_amt}, "{addr1}":{leftover}}}\'\'\'')
-    
     # compare outputs
-    print(res)
     print(raw_tx)
 
     # sign transaction
-    json_result = json.loads(run_cmd_get_output(f'signrawtransaction {res}'))
+    json_result = json.loads(run_cmd_get_output(f'signrawtransaction {raw_tx}'))
     signed_tx = json_result["hex"]
+    # rawhex = w.sign_raw_transaction(0, rawhex, )
 
     # check transaction contents
     print(run_cmd_get_output(f'decoderawtransaction {signed_tx}'))
