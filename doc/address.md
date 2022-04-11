@@ -109,7 +109,7 @@ char privKey[keyLen];
 char pubKey[keyLen];
 generatePrivPubKeypair(privKey, pubKey, false);
 
-if (verifyP2pkhAddress(pubKey, strlen(pubKey))) {
+if (libdogecoin.verifyP2pkhAddress(pubKey, strlen(pubKey))) {
   printf("Address is valid.\n");
 }
 else {
