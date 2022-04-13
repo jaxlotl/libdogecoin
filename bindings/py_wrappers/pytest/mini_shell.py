@@ -2,7 +2,7 @@
 
 import sys
 sys.path.append("./bindings/py_wrappers/libdogecoin/")
-import wrappers as libdogecoin
+import libdogecoin
 
 # MAIN METHOD
 if __name__ == "__main__":
