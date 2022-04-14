@@ -216,7 +216,7 @@ int add_output(int txindex, char* destinationaddress, uint64_t amount) {
     return dogecoin_tx_add_address_out(tx->transaction, chain, (int64_t)amount, destinationaddress);
 }
 
-int make_change(int txindex, char* public_key, float subtractedfee, uint64_t amount) {
+int make_change(int txindex, char* public_key, double subtractedfee, uint64_t amount) {
     // find working transaction by index and pass to funciton local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
 
@@ -234,7 +234,7 @@ int make_change(int txindex, char* public_key, float subtractedfee, uint64_t amo
 
 // 'closes the inputs', specifies the recipient, specifies the amnt-to-subtract-as-fee, and returns the raw tx..
 // out_dogeamount == just an echoback of the total amount specified in the addutxos for verification
-char* finalize_transaction(int txindex, char* destinationaddress, float subtractedfee, uint64_t out_dogeamount_for_verification, char* sender_p2pkh) {
+char* finalize_transaction(int txindex, char* destinationaddress, double subtractedfee, uint64_t out_dogeamount_for_verification, char* sender_p2pkh) {
     // find working transaction by index and pass to funciton local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
 

@@ -88,7 +88,7 @@ void signing_menu(int txindex, int is_testnet) {
     int input_to_sign;
     char* raw_hexadecimal_tx;
     char* script_pubkey;
-    float input_amount;
+    double input_amount;
     char* private_key_wif;
         while (running) {
             printf("\n 1. sign input (from current working transaction)\n");
@@ -157,8 +157,8 @@ void sub_menu(int txindex, int is_testnet) {
     const char* temp_ext_p2pkh;
     uint64_t temp_amt;
     char* output_address;
-    float desired_fee;
-    float total_amount_for_verification;
+    double desired_fee;
+    double total_amount_for_verification;
     char* public_key;
     char* raw_hexadecimal_transaction;
         while (running) {
@@ -219,7 +219,7 @@ void transaction_input_menu(int txindex, int is_testnet) {
             int vout;
             char* raw_hexadecimal_tx;
             char* script_pubkey;
-            float input_amount;
+            double input_amount;
             int input_to_sign;
             char* private_key_wif;
             for (int i = 0; i <= length; i++) {
