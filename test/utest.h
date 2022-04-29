@@ -126,17 +126,10 @@
         long double r_ = (R);                                            \
         long double e_ = (E);                                            \
         do {                                                             \
-<<<<<<< HEAD
             if (r_ != e_ ) {                       \
                 printf("FAILED - %s() - Line %d\n", __func__, __LINE__); \
                 printf("\tExpect: \t%.8Lf\n", e_);                       \
                 printf("\tReceive:\t%.8Lf\n", r_);                       \
-=======
-            if (r_ - e_ < __LDBL_EPSILON__ != 1) {                       \
-                printf("FAILED - %s() - Line %d\n", __func__, __LINE__); \
-                printf("\tExpect: \t%.9Lf\n", e_);                       \
-                printf("\tReceive:\t%.9Lf\n", r_);                       \
->>>>>>> 70e7660... utils: IEEE 754 floating point support detection
                 U_TESTS_FAIL++;                                          \
                 return;                                                  \
             };                                                           \

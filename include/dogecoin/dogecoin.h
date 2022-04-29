@@ -76,15 +76,8 @@ typedef uint8_t dogecoin_bool; //!serialize, c/c++ save bool
     #define DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER    DISABLE_WARNING(4100)
     #define DISABLE_WARNING_UNREFERENCED_FUNCTION            DISABLE_WARNING(4505)
     // other warnings you want to deactivate...
-<<<<<<< HEAD
     #include <BaseTsd.h>
     typedef SSIZE_T ssize_t;
-=======
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-// typedef 
-    
->>>>>>> 70e7660... utils: IEEE 754 floating point support detection
 #elif defined(__GNUC__) || defined(__clang__)
     #define DO_PRAGMA(X) _Pragma(#X)
     #define DISABLE_WARNING_PUSH           DO_PRAGMA(GCC diagnostic push)
