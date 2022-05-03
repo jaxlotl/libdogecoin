@@ -451,6 +451,7 @@ void print_image(FILE* fptr)
         printf("%s", read_string);
     }
 
+<<<<<<< HEAD
 void tostring(char str[], int num)
     {
     int i, rem, len = 0, n;
@@ -466,6 +467,33 @@ void tostring(char str[], int num)
         rem = num % 10;
         num = num / 10;
         str[len - (i + 1)] = rem + '0';
+=======
+#if defined(WIN32)
+double koinu_to_coins(uint64_t koinu) {
+    return (double)koinu / (double)100000000;
+}
+
+uint64_t coins_to_koinu(double coins) {
+    return ((double)coins * (double)100000000);
+}
+#else
+long double koinu_to_coins(uint64_t koinu) {
+    return (long double)koinu / (long double)1e8;
+}
+
+uint64_t coins_to_koinu(long double coins) {
+    char coins_string[32];
+    char koinu_string[32];
+    sprintf(coins_string, "%.9Lf", coins);
+    char* c_ptr = coins_string;
+    char* k_ptr = koinu_string;
+
+    //copy all digits until end of string or decimal point is reached
+    while (*c_ptr != '\0') {
+        if (*c_ptr =='.') {
+            c_ptr++;
+            break;
+>>>>>>> 70e7660... utils: IEEE 754 floating point support detection
         }
     str[len] = '\0';
     }
@@ -479,6 +507,7 @@ int toint(char str[])
         {
         num = num + ((str[len - (i + 1)] - '0') * pow(10, i));
         }
+<<<<<<< HEAD
 
     return num;
     }
@@ -586,9 +615,25 @@ long double mult(uint64_t x, uint64_t y) {
             ans += x;
         x = x << 1;
         y = y >> 1;
+=======
+        if (i==8) {
+            //assessing the 9th decimal place
+            if (c_ptr[1] >= '5') {
+                char curr_val = *c_ptr;
+                memset(k_ptr, curr_val+1, 1);
+                k_ptr++;
+            }
+            else {
+                memcpy(k_ptr, c_ptr, 1);
+                k_ptr++;
+            }
+            memset(k_ptr, '\0', 1);
+            break;
+>>>>>>> 70e7660... utils: IEEE 754 floating point support detection
         }
     return ans;
     }
+<<<<<<< HEAD
 
 long double koinu_to_coins(uint64_t koinu) {
     debug_print("koinu (llu): %"PRIu64"\n", koinu);
@@ -626,6 +671,12 @@ uint64_t coins_to_koinu(long double coins) {
     uint64_t result = (uint64_t)strtoull(coins_string, &c_ptr, 10);
     return result;
     }
+=======
+    uint64_t result = (uint64_t)strtoul(koinu_string, &k_ptr, 10);
+    return result;
+}
+#endif
+>>>>>>> 70e7660... utils: IEEE 754 floating point support detection
 
 void print_bits(size_t const size, void const* ptr)
     {

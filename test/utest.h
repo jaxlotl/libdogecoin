@@ -126,10 +126,17 @@
         long double r_ = (R);                                            \
         long double e_ = (E);                                            \
         do {                                                             \
+<<<<<<< HEAD
             if (r_ != e_ ) {                       \
                 printf("FAILED - %s() - Line %d\n", __func__, __LINE__); \
                 printf("\tExpect: \t%.8Lf\n", e_);                       \
                 printf("\tReceive:\t%.8Lf\n", r_);                       \
+=======
+            if (r_ - e_ < __LDBL_EPSILON__ != 1) {                       \
+                printf("FAILED - %s() - Line %d\n", __func__, __LINE__); \
+                printf("\tExpect: \t%.9Lf\n", e_);                       \
+                printf("\tReceive:\t%.9Lf\n", r_);                       \
+>>>>>>> 70e7660... utils: IEEE 754 floating point support detection
                 U_TESTS_FAIL++;                                          \
                 return;                                                  \
             };                                                           \
@@ -138,13 +145,13 @@
     
 #define u_assert_double_eq(R, E)                                         \
     {                                                                    \
-        double r_ = (R);                                               \
-        double e_ = (E);                                               \
+        double r_ = (R);                                                 \
+        double e_ = (E);                                                 \
         do {                                                             \
             if (r_ != e_) {                                              \
                 printf("FAILED - %s() - Line %d\n", __func__, __LINE__); \
-                printf("\tExpect: \t%lf\n", e_);                 \
-                printf("\tReceive:\t%lf\n", r_);                 \
+                printf("\tExpect: \t%lf\n", e_);                         \
+                printf("\tReceive:\t%lf\n", r_);                         \
                 U_TESTS_FAIL++;                                          \
                 return;                                                  \
             };                                                           \
