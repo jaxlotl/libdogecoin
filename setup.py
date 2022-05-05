@@ -7,9 +7,9 @@ libdoge_extension = Extension(
     include_dirs=       ["include",
                         "include/dogecoin",
                         "include/dogecoin/crypto",
-                        "src/secp256k1/include"],
-    extra_objects=      ["src/secp256k1/.libs/libsecp256k1.a",
-                        ".libs/libdogecoin.a"]
+                        "src/secp256k1/include",
+                        "src/secp256k1/src"],
+    extra_objects=      [".libs/libdogecoin.a"]
 )
 
 setup(

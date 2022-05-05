@@ -34,6 +34,7 @@ def generate_priv_pub_key_pair(chain_code=0, as_bytes=False):
     cdef char p2pkh_pubkey[35]
     cdef bint is_testnet = chain_code
 
+
     # call c function
     dogecoin_ecc_start()
     generatePrivPubKeypair(privkey, p2pkh_pubkey, is_testnet)

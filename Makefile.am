@@ -40,7 +40,15 @@ libdogecoininclude_HEADERS = \
     contrib/uthash/uthash.h \
     include/dogecoin/utils.h \
     include/dogecoin/vector.h \
-    include/dogecoin/wow.h
+    include/dogecoin/wow.h \
+    src/secp256k1/include/secp256k1_ecdh.h \
+    src/secp256k1/include/secp256k1_extrakeys.h \
+    src/secp256k1/include/secp256k1_preallocated.h \
+    src/secp256k1/include/secp256k1_recovery.h \
+    src/secp256k1/include/secp256k1_schnorrsig.h \
+    src/secp256k1/include/secp256k1.h \
+    src/secp256k1/src/precomputed_ecmult.h \
+    src/secp256k1/src/precomputed_ecmult_gen.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libdogecoin.pc
@@ -68,7 +76,11 @@ libdogecoin_la_SOURCES = \
     src/transaction.c \
     src/tx.c \
     src/utils.c \
-    src/vector.c
+    src/vector.c \
+    src/secp256k1/src/secp256k1.c \
+    src/secp256k1/src/precomputed_ecmult.c \
+    src/secp256k1/src/precomputed_ecmult_gen.c \
+    src/secp256k1/src/precompute_ecmult_gen.c
 
 libdogecoin_la_CFLAGS = -I$(top_srcdir)/include
 libdogecoin_la_LIBADD = $(LIBSECP256K1)
