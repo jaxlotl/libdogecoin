@@ -4,7 +4,8 @@ from Cython.Build import cythonize
 libdoge_extension = Extension(
     name=               "libdogecoin",
     sources=            ["bindings/py_wrappers/libdogecoin/libdogecoin.pyx"],
-    include_dirs=       ["include",
+    include_dirs=       [".",
+                        "include",
                         "include/dogecoin",
                         "include/dogecoin/crypto",
                         "src/secp256k1/include",
