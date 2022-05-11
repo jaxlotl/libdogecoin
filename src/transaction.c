@@ -432,7 +432,9 @@ void clear_transaction(int txindex) {
  * @return char*  
  */
 char* sign_raw_transaction(int inputindex, char* incomingrawtx, char* scripthex, int sighashtype, int amount, char* privkey) {
+    printf("inside function\n");
     if(!incomingrawtx && !scripthex) return false;
+    printf("passed initial check\n");
 
     if (strlen(incomingrawtx) > 1024*100) { //don't accept tx larger then 100kb
         printf("tx too large (max 100kb)\n");
@@ -500,12 +502,15 @@ char* sign_raw_transaction(int inputindex, char* incomingrawtx, char* scripthex,
             if (strlen(privkey) > 50) {
                 dogecoin_tx_free(txtmp);
                 cstr_free(script, true);
+                printf("fail here1\n");
                 return false;
             }
         } else {
+            printf("fail here2\n");
             return false;
         }
     }
+    printf("made it\n");
     if (sign) {
         uint8_t sigcompact[64] = {0};
         int sigderlen = 74+1; //&hashtype

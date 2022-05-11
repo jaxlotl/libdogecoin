@@ -158,50 +158,57 @@ def send_tx(in_frame, out_frame):
 
     # read unspent transaction info
     utxos = run_cmd_get_output("listunspent").split("},\n")
-    s = utxos[-1].translate({ord(x): None for x in "{[]}"})
-    most_recent = json.loads(f"{{{s}}}")
+    s = utxos[-1].translate({ord(x): None for x in "{[]}"}) #ord(x) strips json of all brackets/braces
+    print(f"JSON:\n{s}\n\n")
+    most_recent = json.loads(f"{{{s}}}") #restore braces in the correct position
+    # s = utxos[-2].translate({ord(x): None for x in "{[]}"})
+    # secondmost_recent = json.loads(f"{{{s}}}")
 
     # assign input information to variables
     inp_txid = most_recent["txid"]
     inp_vout = most_recent["vout"]
     inp_addr = most_recent["address"]
-    inp_account = most_recent["account"]
+    # inp_account = most_recent["account"]
     inp_scriptpk = most_recent["scriptPubKey"]
     inp_amount = most_recent["amount"]
-    inp_confs = most_recent["confirmations"]
-    inp_spendable = most_recent["spendable"]
-    inp_solvable = most_recent["solvable"]
+    # inp_confs = most_recent["confirmations"]
+    # inp_spendable = most_recent["spendable"]
+    # inp_solvable = most_recent["solvable"]
+
+    # inp2_txid = secondmost_recent["txid"]
+    # inp2_vout = secondmost_recent["vout"]
+    # inp2_addr = secondmost_recent["address"]
+    # inp2_account = secondmost_recent["account"]
+    # inp2_scriptpk = secondmost_recent["scriptPubKey"]
+    # inp2_amount = secondmost_recent["amount"]
+    # inp2_confs = secondmost_recent["confirmations"]
+    # inp2_spendable = secondmost_recent["spendable"]
+    # inp2_solvable = secondmost_recent["solvable"]
 
     # generate keys/addresses
     addr1 = inp_addr
-    addr2 = run_rpc_cmd_get_output("getnewaddress").strip()
+    LOLA = "nbMFaHF9pjNoohS4fD1jefKBgDnETK9uPu" #run_rpc_cmd_get_output("getnewaddress").strip()
     priv = run_cmd_get_output(f"dumpprivkey {addr1}")
-    addr1_ptr = ct.c_char_p(addr1.encode("utf-8"))
-    dogelib.dogecoin_p2pkh_to_script_hash.restype = ct.c_void_p
-    script_pubkey = dogelib.dogecoin_p2pkh_to_script_hash(addr1_ptr)
-    script_pubkey = ct.c_char_p(script_pubkey).value.decode("utf-8")
+    print("priv =", priv)
 
     # set transaction parameters
-    total = inp_amount # will spend the entire utxo
-    fee = 100
-    send_amt = total-fee
+    send_amt = 1
+    fee = 1
 
     # create transaction with py wrappers
     idx = w.start_transaction()
-    w.add_utxo(idx, inp_txid, inp_vout)
-    w.add_output(idx, addr2, send_amt)
-    raw_tx = w.finalize_transaction(idx, addr2, fee, total, addr1)
-
-    # compare outputs
+    assert(w.add_utxo(idx, inp_txid, inp_vout)==1)
+    assert(w.add_output(idx, LOLA, send_amt)==1)
+    raw_tx = w.finalize_transaction(idx, LOLA, fee, inp_amount, addr1)
     print(raw_tx)
 
     # sign transaction
     # json_result = json.loads(run_cmd_get_output(f'signrawtransaction {raw_tx}'))
     # signed_tx = json_result["hex"]
-    # signed_tx = w.sign_raw_transaction(0, raw_tx, script_pubkey, 1, total, priv)
-    # print(signed_tx)
+    signed_tx = w.sign_raw_transaction(0, raw_tx, inp_scriptpk, 1, inp_amount, priv)
+    print("final signed tx:",signed_tx)
 
-    # check transaction contents
+    # # check transaction contents
     # print(run_cmd_get_output(f'decoderawtransaction {signed_tx}'))
     # print(signed_tx)
     # print(run_cmd_get_output(f'sendrawtransaction {signed_tx}'))
@@ -212,12 +219,12 @@ def send_tx(in_frame, out_frame):
 # RPC METHODS
 def start_server():
     conf_path = "../.dogecoin/dogecoin.conf"
-    subprocess.run(f"dogecoind -regtest -conf={conf_path} &", shell=True) # assigned to port 18443 in conf
+    subprocess.run(f"dogecoind -{chain} -conf={conf_path} &", shell=True) # assigned to port 18443 in conf
     # satoshi password:   ODywh9M6DF8U8GU7YFhNDwG0NnlG5BVSAABW7ahes8A=
 
 def start_node2():
     conf_path = "../.dogecoin/dogecoin-client.conf" #TODO: can you get this dynamically
-    subprocess.run(f"dogecoind -regtest -rpcport={node2_rpcport} -conf={conf_path} &", shell=True) # assigned to port 18444 in conf
+    subprocess.run(f"dogecoind -{chain} -rpcport={node2_rpcport} -conf={conf_path} &", shell=True) # assigned to port 18444 in conf
     # satoshi2 password:   CzTZr8-hQ1LniGNi-KFD8f6BPZsqbHdsLUhpGD7M8TI=
 
 def stop_nodes():
@@ -227,12 +234,12 @@ def stop_nodes():
         run_rpc_cmd_get_output("stop")
 
 def run_cmd_get_output(cmd):
-    raw_output = subprocess.run(f"dogecoin-cli -regtest {cmd}", shell=True, capture_output=True).stdout
+    raw_output = subprocess.run(f"dogecoin-cli -{chain} {cmd}", shell=True, capture_output=True).stdout
     str_output = raw_output.decode("utf-8")
     return str_output
 
 def run_rpc_cmd_get_output(cmd):
-    raw_output = subprocess.run(f"dogecoin-cli -regtest -rpcport={node2_rpcport} -rpcuser={node2_rpcuser} -rpcpassword={node2_rpcpwd} {cmd}", shell=True, capture_output=True).stdout
+    raw_output = subprocess.run(f"dogecoin-cli -{chain} -rpcport={node2_rpcport} -rpcuser={node2_rpcuser} -rpcpassword={node2_rpcpwd} {cmd}", shell=True, capture_output=True).stdout
     str_output = raw_output.decode("utf-8")
     return str_output
 
@@ -290,6 +297,7 @@ user_choice = tk.IntVar()
 user_response = tk.StringVar()
 
 #start app
+chain = "testnet"
 start_server()
 node2_rpcport = 8333
 node2_rpcuser = "satoshi2"

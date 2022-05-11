@@ -99,8 +99,10 @@ void dogecoin_privkey_encode_wif(const dogecoin_key* privkey, const dogecoin_cha
 
 dogecoin_bool dogecoin_privkey_decode_wif(const char* privkey_wif, const dogecoin_chainparams* chain, dogecoin_key* privkey)
 {
-    if (!privkey_wif || strlen(privkey_wif) < 50)
+    if (!privkey_wif || strlen(privkey_wif) < 50) {
+        printf("fail 1\n");
         return false;
+    }
     const size_t privkey_len = strlen(privkey_wif);
     uint8_t* privkey_data = (uint8_t*)dogecoin_calloc(1, privkey_len);
     memset(privkey_data, 0, privkey_len);
@@ -108,10 +110,12 @@ dogecoin_bool dogecoin_privkey_decode_wif(const char* privkey_wif, const dogecoi
     outlen = dogecoin_base58_decode_check(privkey_wif, privkey_data, privkey_len);
     if (!outlen) {
         dogecoin_free(privkey_data);
+        printf("fail2\n");
         return false;
     }
     if (privkey_data[0] != chain->b58prefix_secret_address) {
         dogecoin_free(privkey_data);
+        printf("fail3\n");
         return false;
     }
     memcpy(privkey->privkey, &privkey_data[1], DOGECOIN_ECKEY_PKEY_LENGTH);
