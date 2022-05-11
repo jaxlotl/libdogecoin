@@ -8,6 +8,7 @@ libdoge_extension = Extension(
                         "include",
                         "include/dogecoin",
                         "include/dogecoin/crypto",
+                        "include/dogecoin/net",
                         "src/secp256k1/include",
                         "src/secp256k1/src"],
     extra_objects=      [".libs/libdogecoin.a"]
@@ -15,7 +16,7 @@ libdoge_extension = Extension(
 
 setup(
     name=               "libdogecoin",
-    version=            "0.1",
+    version=            "0.5",
     description=        "Python interface for the libdogecoin C library",
     author=             "Jackie McAninch",
     author_email=       "jackie.mcaninch.2019@gmail.com",
