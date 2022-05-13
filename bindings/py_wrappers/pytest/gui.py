@@ -1,16 +1,19 @@
 import json
+from tkinter import messagebox
 import tkinter as tk
+from turtle import clear
 import screeninfo as scr
 import time
-import sys
-sys.path.append("./bindings/py_wrappers/libdogecoin/")
-import wrappers as w
+import libdogecoin as w
 import ctypes as ct
 import subprocess
 
 
 # HELPER METHODS
 def display_radiobutton_user_choice(frame, choices):
+
+    #clear frame
+    clear_frame(frame)
 
     #display menu
     selection = tk.IntVar()
@@ -30,6 +33,9 @@ def display_radiobutton_user_choice(frame, choices):
 
 def receive_user_entry(frame, prompt):
 
+    #clear frame
+    clear_frame(frame)
+
     #write prompt
     msg = tk.Label(frame, text=prompt)
     msg.grid(row=1, column=1)
@@ -47,10 +53,12 @@ def receive_user_entry(frame, prompt):
     return str(user_response.get())
 
 def display_error_output(frame, msg):
+    clear_frame(frame)
     label = tk.Label(frame, test=msg, justify=tk.CENTER)
     label.grid()
 
 def display_output(frame, labs, vals):
+    clear_frame(frame)
 
     labels = [None]*len(labs)
     values = [None]*len(vals)
@@ -65,6 +73,7 @@ def display_output(frame, labs, vals):
         copy_buttons[i].grid(row=(3*i)+2, sticky="nesw", columnspan=2, padx=5, pady=5)
 
 def display_copyable_output(frame, labs, vals):
+    clear_frame(frame)
 
     labels = [None]*len(labs)
     values = [None]*len(vals)
@@ -90,6 +99,7 @@ def clear_frame(frame):
         widget.destroy()
 
 def on_exit():
+    w.context_stop()
     user_choice.set(-1)
     user_response.set("err")
     stop_nodes()
@@ -157,81 +167,112 @@ def send_tx(in_frame, out_frame):
     clear_frame(out_frame)
 
     # read unspent transaction info
-    utxos = run_cmd_get_output("listunspent").split("},\n")
-    s = utxos[-1].translate({ord(x): None for x in "{[]}"}) #ord(x) strips json of all brackets/braces
-    print(f"JSON:\n{s}\n\n")
-    most_recent = json.loads(f"{{{s}}}") #restore braces in the correct position
-    # s = utxos[-2].translate({ord(x): None for x in "{[]}"})
-    # secondmost_recent = json.loads(f"{{{s}}}")
+    raw_utxos = run_cmd_get_output("listunspent").split("},\n")
+
+    # strip all JSON formatting
+    utxos = []
+    for ru in raw_utxos:
+        utxos.append(ru.translate({ord(x): None for x in "{[]}"})) #ord(x) strips json of all brackets/braces
+    
+    # restore necessary braces
+    fmtd_utxos = []
+    for u in utxos:
+        fmtd_utxos.append(json.loads(f"{{{u}}}"))
 
     # assign input information to variables
-    inp_txid = most_recent["txid"]
-    inp_vout = most_recent["vout"]
-    inp_addr = most_recent["address"]
-    # inp_account = most_recent["account"]
-    inp_scriptpk = most_recent["scriptPubKey"]
-    inp_amount = most_recent["amount"]
-    # inp_confs = most_recent["confirmations"]
-    # inp_spendable = most_recent["spendable"]
-    # inp_solvable = most_recent["solvable"]
-
-    # inp2_txid = secondmost_recent["txid"]
-    # inp2_vout = secondmost_recent["vout"]
-    # inp2_addr = secondmost_recent["address"]
-    # inp2_account = secondmost_recent["account"]
-    # inp2_scriptpk = secondmost_recent["scriptPubKey"]
-    # inp2_amount = secondmost_recent["amount"]
-    # inp2_confs = secondmost_recent["confirmations"]
-    # inp2_spendable = secondmost_recent["spendable"]
-    # inp2_solvable = secondmost_recent["solvable"]
+    inp_txids = []
+    inp_vouts = []
+    inp_addrs = []
+    inp_scriptpks = []
+    inp_amounts = []
+    for fu in fmtd_utxos:
+        inp_txids.append(fu["txid"])
+        inp_vouts.append(fu["vout"])
+        inp_addrs.append(fu["address"])
+        inp_scriptpks.append(fu["scriptPubKey"])
+        inp_amounts.append(fu["amount"])
 
     # generate keys/addresses
-    addr1 = inp_addr
-    LOLA = "nbMFaHF9pjNoohS4fD1jefKBgDnETK9uPu" #run_rpc_cmd_get_output("getnewaddress").strip()
-    priv = run_cmd_get_output(f"dumpprivkey {addr1}")
-    print("priv =", priv)
+    my_addr = inp_addrs[0] # all record addresses should be the same
+    LOLA = "nbMFaHF9pjNoohS4fD1jefKBgDnETK9uPu"
+    KRAMER = "nnY36T2PtRywcp7amPMEVAYgiSpVMC7kow"
+    priv = run_cmd_get_output(f"dumpprivkey {my_addr}").strip()
 
-    # set transaction parameters
-    send_amt = 1
-    fee = 1
+    # user set transaction parameters
+    ext_addr = receive_user_entry(in_frame, "Enter address to send to: ")
+    if ext_addr=="lola":
+        ext_addr = LOLA
+    if ext_addr=="kramer":
+        ext_addr = KRAMER
+    send_amt = int(receive_user_entry(in_frame, "Enter send amount (INTEGER ONLY): "))
+    fee = float(receive_user_entry(in_frame, "Enter fee amount: "))
 
-    # create transaction with py wrappers
-    idx = w.start_transaction()
-    assert(w.add_utxo(idx, inp_txid, inp_vout)==1)
-    assert(w.add_output(idx, LOLA, send_amt)==1)
-    raw_tx = w.finalize_transaction(idx, LOLA, fee, inp_amount, addr1)
-    print(raw_tx)
+    # collect inputs
+    input_total = 0
+    num_inputs = 0
+    while input_total<send_amt:
+        input_total += inp_amounts[num_inputs]
+        num_inputs+=1
 
-    # sign transaction
-    # json_result = json.loads(run_cmd_get_output(f'signrawtransaction {raw_tx}'))
-    # signed_tx = json_result["hex"]
-    signed_tx = w.sign_raw_transaction(0, raw_tx, inp_scriptpk, 1, inp_amount, priv)
+    # build transaction and display components
+    idx = w.w_start_transaction()
+    column1_width = 100
+    column2_width = 10
+    input_header = tk.Label(out_frame, text="Inputs:", justify=tk.LEFT)
+    input_header.grid(row=0, column=0, sticky="w")
+    inputs = []
+    for i in range(num_inputs):
+        inputs.append(tk.Label(out_frame, text=f"\t{inp_addrs[i]:<{column1_width}}{str(inp_amounts[i]):>{column2_width}}", justify=tk.LEFT))
+        inputs[i].grid(row=i+1, sticky="w")
+        assert(w.w_add_utxo(idx, inp_txids[i], inp_vouts[i])==1)
+    assert(w.w_add_output(idx, ext_addr, send_amt)==1)
+    raw_tx = w.w_finalize_transaction(idx, ext_addr, fee, int(input_total), my_addr)
+    
+    output_header = tk.Label(out_frame, text="Outputs:", justify=tk.LEFT)
+    output_header.grid(row=num_inputs+2, column=0, sticky="w")
+    outputs = []
+    outputs.append(tk.Label(out_frame, text=f"\t{ext_addr:<{column1_width}}{str(send_amt):>{column2_width}}", justify=tk.LEFT))
+    outputs[0].grid(row=num_inputs+3, column=0, sticky="w")
+    outputs.append(tk.Label(out_frame, text=f"\t{my_addr:<{column1_width}}{str(int(input_total)-fee-send_amt):>{column2_width}}", justify=tk.LEFT))
+    outputs[1].grid(row=num_inputs+4, column=0, sticky="w")
+    outputs.append(tk.Label(out_frame, text=f"\t{'Transaction Fee':<{column1_width}}{str(fee):>{column2_width}}", justify=tk.LEFT))
+    outputs[2].grid(row=num_inputs+5, column=0, sticky="w")
+
+    # sign all inputs of the transaction
+    for i in range(num_inputs):
+        raw_tx = w.w_sign_raw_transaction(i, raw_tx, inp_scriptpks[i], 1, int(inp_amounts[i]), priv)
+    signed_tx = raw_tx
     print("final signed tx:",signed_tx)
 
-    # # check transaction contents
-    # print(run_cmd_get_output(f'decoderawtransaction {signed_tx}'))
-    # print(signed_tx)
-    # print(run_cmd_get_output(f'sendrawtransaction {signed_tx}'))
-    # print(run_cmd_get_output("getbalance"))
-    # print(run_rpc_cmd_get_output("getbalance"))
+    # confirm and send transaction
+    def send_transaction():
+        clear_frame(in_frame)
+        run_cmd_get_output(f'sendrawtransaction {signed_tx}')
+        
+    send_button = tk.Button(in_frame, text="SEND", command=send_transaction)
+    send_button.grid()
     
 
 # RPC METHODS
 def start_server():
-    conf_path = "../.dogecoin/dogecoin.conf"
-    subprocess.run(f"dogecoind -{chain} -conf={conf_path} &", shell=True) # assigned to port 18443 in conf
+    dogepid = subprocess.run("pidof dogecoind", shell=True, capture_output=True).stdout.decode("utf-8")
+    if not dogepid:
+        conf_path = "../.dogecoin/dogecoin.conf"
+        subprocess.run(f"dogecoind -{chain} -conf={conf_path} &", shell=True) # assigned to port 18443 in conf
+        start_node2()
     # satoshi password:   ODywh9M6DF8U8GU7YFhNDwG0NnlG5BVSAABW7ahes8A=
 
 def start_node2():
-    conf_path = "../.dogecoin/dogecoin-client.conf" #TODO: can you get this dynamically
+    conf_path = "../.dogecoin/dogecoin-client.conf"
     subprocess.run(f"dogecoind -{chain} -rpcport={node2_rpcport} -conf={conf_path} &", shell=True) # assigned to port 18444 in conf
     # satoshi2 password:   CzTZr8-hQ1LniGNi-KFD8f6BPZsqbHdsLUhpGD7M8TI=
 
 def stop_nodes():
-    dogepid = subprocess.run("pidof dogecoind", shell=True, capture_output=True).stdout.decode("utf-8")
-    if dogepid:
-        run_cmd_get_output("stop")
-        run_rpc_cmd_get_output("stop")
+    if messagebox.askyesno("Exit", "Stop nodes?"):
+        dogepid = subprocess.run("pidof dogecoind", shell=True, capture_output=True).stdout.decode("utf-8")
+        if dogepid:
+            run_cmd_get_output("stop")
+            run_rpc_cmd_get_output("stop")
 
 def run_cmd_get_output(cmd):
     raw_output = subprocess.run(f"dogecoin-cli -{chain} {cmd}", shell=True, capture_output=True).stdout
@@ -289,20 +330,17 @@ x_offset = int((curr_screen.width-win_width)/2)
 y_offset = int((curr_screen.height-win_height)/2)
 root.geometry('{}x{}+{}+{}'.format(win_width, win_height, x_offset, y_offset)) # position in screen middle, 60% of the heigh and 40% of the width
 
-#load function library
-dogelib = w.load_libdogecoin()
-
 #create user response variables
 user_choice = tk.IntVar()
 user_response = tk.StringVar()
 
 #start app
 chain = "testnet"
-start_server()
 node2_rpcport = 8333
 node2_rpcuser = "satoshi2"
 node2_rpcpwd = "CzTZr8-hQ1LniGNi-KFD8f6BPZsqbHdsLUhpGD7M8TI="
-start_node2()
+start_server()
+w.context_start()
 display_main()
 root.protocol('WM_DELETE_WINDOW', on_exit)
 try:
