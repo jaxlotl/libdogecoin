@@ -152,7 +152,7 @@ int by_id(const struct working_transaction *a, const struct working_transaction 
 
 /**
  * @brief This function prints a prompt and parses the user's
- * reponse for a CLI tool.
+ * response, for use in CLI.
  * 
  * @param prompt The prompt to display to the user.
  * 
@@ -280,7 +280,7 @@ int save_raw_transaction(int txindex, const char* hexadecimal_transaction) {
  * @return 1 if the transaction input was added successfully, 0 otherwise. 
  */
 int add_utxo(int txindex, char* hex_utxo_txid, int vout) {
-    // find working transaction by index and pass to funciton local variable to manipulate:
+    // find working transaction by index and pass to function local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
 
     // guard against null pointer exceptions
@@ -318,7 +318,7 @@ int add_utxo(int txindex, char* hex_utxo_txid, int vout) {
  * @return 1 if the transaction input was added successfully, 0 otherwise.
  */
 int add_output(int txindex, char* destinationaddress, uint64_t amount) {
-    // find working transaction by index and pass to funciton local variable to manipulate:
+    // find working transaction by index and pass to function local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
     // guard against null pointer exceptions
     if (tx == NULL) {
@@ -329,7 +329,7 @@ int add_output(int txindex, char* destinationaddress, uint64_t amount) {
 
     amount = coins_to_koinu(amount);
     // calculate total minus fees
-    // pass in transaction obect, network paramters, amount of dogecoin to send to address and finally p2pkh address:
+    // pass in transaction object, network parameters, amount of dogecoin to send to address and finally p2pkh address:
     return dogecoin_tx_add_address_out(tx->transaction, chain, (int64_t)amount, destinationaddress);
 }
 
@@ -346,7 +346,7 @@ int add_output(int txindex, char* destinationaddress, uint64_t amount) {
  * @return 1 if the additional output was created successfully, 0 otherwise.
  */
 static int make_change(int txindex, char* public_key, float subtractedfee, uint64_t amount) {
-    // find working transaction by index and pass to funciton local variable to manipulate:
+    // find working transaction by index and pass to function local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
 
     // guard against null pointer exceptions
@@ -374,7 +374,7 @@ static int make_change(int txindex, char* public_key, float subtractedfee, uint6
  * @return The hex of the finalized transaction.
  */
 char* finalize_transaction(int txindex, char* destinationaddress, double subtractedfee, uint64_t out_dogeamount_for_verification, char* sender_p2pkh) {
-    // find working transaction by index and pass to funciton local variable to manipulate:
+    // find working transaction by index and pass to function local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
 
     // guard against null pointer exceptions
@@ -414,7 +414,7 @@ char* finalize_transaction(int txindex, char* destinationaddress, double subtrac
         return false;
     }
 
-    // pass in transaction obect, network paramters, amount of dogecoin to send to address and finally p2pkh address:
+    // pass in transaction object, network parameters, amount of dogecoin to send to address and finally p2pkh address:
     return tx_out_total == total ? get_raw_transaction(txindex) : false;
 }
 
@@ -433,7 +433,7 @@ char* get_raw_transaction(int txindex) {
     // guard against null pointer exceptions
     if (tx == NULL) return false;
 
-    // new allocated cstring to store hexadeicmal buffer string:
+    // new allocated cstring to store hexadecimal buffer string:
     cstring* serialized_transaction = cstr_new_sz(1024);
 
     // serialize transaction object to new cstring and ignore witness:
@@ -455,7 +455,7 @@ char* get_raw_transaction(int txindex) {
  * @return Nothing.
  */
 void clear_transaction(int txindex) {
-    // find working transaction by index and pass to funciton local variable to manipulate:
+    // find working transaction by index and pass to function local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
     // remove from hashmap
     remove_transaction(tx);
@@ -561,7 +561,7 @@ char* sign_raw_transaction(int inputindex, char* incomingrawtx, char* scripthex,
         char sigcompacthex[64*2+1] = {0};
         utils_bin_to_hex((unsigned char *)sigcompact, 64, sigcompacthex);
 
-        char sigderhex[74*2+2+1]; //74 der, 2 hashtype, 1 nullbyte
+        char sigderhex[74*2+2+1]; //74 der, 2 hashtype, 1 null byte
         dogecoin_mem_zero(sigderhex, sizeof(sigderhex));
         utils_bin_to_hex((unsigned char *)sigder_plus_hashtype, sigderlen, sigderhex);
 

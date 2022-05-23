@@ -119,7 +119,7 @@ void broadcast_handshake_done(struct dogecoin_node_* node) {
     }
 
 /**
- * @brief This function deterimines if we have connected to the maximum number of peers
+ * @brief This function determines if we have connected to the maximum number of peers
  * (true) or not (false).
  *
  * @param node the node that we are broadcasting to.
@@ -1747,7 +1747,7 @@ enum dogecoin_tx_sign_result dogecoin_tx_sign_input(dogecoin_tx* tx_in_out, cons
         ser_bytes(tx_in->script_sig, pubkey.pubkey, pubkey.compressed ? DOGECOIN_ECKEY_COMPRESSED_LENGTH : DOGECOIN_ECKEY_UNCOMPRESSED_LENGTH);
     } else if (type == DOGECOIN_TX_WITNESS_V0_PUBKEYHASH) {
         /* This is the code that is used to create the witness stack for a P2WPKH transaction. */
-        // signal witness by emtpying script sig (may be already empty)
+        // signal witness by emptying script sig (may be already empty)
         cstr_resize(tx_in->script_sig, 0);
         if (witness_set_scriptsig) {
             // append the script sig in case of P2SH-P2WPKH

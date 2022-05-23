@@ -55,7 +55,7 @@ typedef struct dogecoin_tx_outpoint_ {
 } dogecoin_tx_outpoint;
 ```
 
-The script structure consists of a series of pieces of information and operations related to the value of the transaction. When notating scripts, data to be pushed to the stack is generally enclosed in angle brackets and data push commands are ommited. Non-bracketed words are opcodes. These examples include the "OP_" prefix, but it is permissible to omit it. Thus “<pubkey1> <pubkey2> OP_2 OP_CHECKMULTISIG” may be abbreviated to “<pubkey1> <pubkey2> 2 CHECKMULTISIG”. Note that there is a small number of standard script forms that are relayed from node to node; non-standard scripts are accepted if they are in a block, but nodes will not relay them.
+The script structure consists of a series of pieces of information and operations related to the value of the transaction. When notating scripts, data to be pushed to the stack is generally enclosed in angle brackets and data push commands are omitted. Non-bracketed words are opcodes. These examples include the "OP_" prefix, but it is permissible to omit it. Thus “<pubkey1> <pubkey2> OP_2 OP_CHECKMULTISIG” may be abbreviated to “<pubkey1> <pubkey2> 2 CHECKMULTISIG”. Note that there is a small number of standard script forms that are relayed from node to node; non-standard scripts are accepted if they are in a block, but nodes will not relay them.
 
 #### Standard Transaction to Dogecoin Address (pay-to-pubkey-hash)
 ```
@@ -112,7 +112,7 @@ typedef struct dogecoin_tx_out_ {
 #### Essential APIs
 
 The high level 'essential' API provided by libdogecoin for working with simple 
-transactions revolve around a structure defined as a `working_transaction` which is comprised of an index as an integer meant for retrieval, a dogecoin_tx 'transaction' structure as seen above and finally a UT_hash_handle which stores our working_transaction struct in a hash table (using Troy D. Hansons uthash library: see ./contrib/uthash/uthash.h and visit https://troydhanson.github.io/uthash/ for more information) to allow us to generate multiple transactions per "session":
+transactions revolve around a structure defined as a `working_transaction` which is comprised of an index as an integer meant for retrieval, a dogecoin_tx 'transaction' structure as seen above and finally a UT_hash_handle which stores our working_transaction struct in a hash table (using Troy D. Hanson's uthash library: see ./contrib/uthash/uthash.h and visit https://troydhanson.github.io/uthash/ for more information) to allow us to generate multiple transactions per "session":
 ```
 typedef struct working_transaction {
     int index;
@@ -306,7 +306,7 @@ _Python usage:_
 
 `char* finalize_transaction(int txindex, char* destinationaddress, double subtractedfee, uint64_t out_dogeamount_for_verification)`
 
-This function takes in a working_transaction structures index as an integer (txindex), the external destination address we are sending to, the desired fee to be substracted and the total amount of all utxos to be spent. It automatically calculates the total minus the fee and compares against whats found in the raw hexadecimal transaction. In addition it compares the external destination address to the script hash by converting to p2pkh and counting to check it's found. If either the amount or address are not found the function will return false and failure should be handled by the caller. 
+This function takes in a working_transaction structures index as an integer (txindex), the external destination address we are sending to, the desired fee to be subtracted and the total amount of all utxos to be spent. It automatically calculates the total minus the fee and compares against whats found in the raw hexadecimal transaction. In addition it compares the external destination address to the script hash by converting to p2pkh and counting to check it's found. If either the amount or address are not found the function will return false and failure should be handled by the caller. 
 
 _C usage:_
 ```C
@@ -358,7 +358,7 @@ _Python usage:_
 
 `void clear_transaction(int txindex)`
 
-This function takes in a working_transaction structures index as an integer (txindex), retreives it and passes into a working_transaction structure, checks to see if working_transaction->transaction->vin and working_transaction->transaction->vout exist and if so, free them using vector_free, then free the working_transaction->transaction and finally removes the working_transaction itself from our hashmap.  
+This function takes in a working_transaction structures index as an integer (txindex), retrieves it and passes into a working_transaction structure, checks to see if working_transaction->transaction->vin and working_transaction->transaction->vout exist and if so, free them using vector_free, then free the working_transaction->transaction and finally removes the working_transaction itself from our hashmap.  
 
 _C usage:_
 ```C

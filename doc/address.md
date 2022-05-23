@@ -1,9 +1,9 @@
 # Dogecoin Addresses
 
-A Dogecoin Address is the Public Key of an assymetric key-pair, and provides
-a designation on the network to hold Dogecoins on the ledger. By holding the
+A Dogecoin Address is the Public Key of an asymmetric key-pair, and provides
+a designation on the network to hold Dogecoin on the ledger. By holding the
 Private Key for an Address on the Ledger you have the ability to sign 
-Transactions to move (spend/send) the Dogecoins attributed to the Address.
+Transactions to move (spend/send) the Dogecoin attributed to the Address.
 
 Dogecoin Addresses can be created in a number of ways, each with benefits
 depending on the objective of the Address owner(s). 
@@ -160,7 +160,7 @@ found in `include/dogecoin/address.h` and are:
 `generateHDMasterPubKeypair(char* wif_privkey_master, char* p2pkh_pubkey_master, bool is_testnet)`
 
 This function will populate provided private/public char* variables with a freshly
-generated master key pair for a heirarchical deterministic wallet, specifically 
+generated master key pair for a hierarchical deterministic wallet, specifically 
 for the network specified by the third parameter. 
 
 _C usage:_
