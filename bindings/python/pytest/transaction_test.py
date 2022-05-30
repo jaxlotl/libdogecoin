@@ -6,6 +6,7 @@ import libdogecoin as l
 
 # internal keys
 privkey_wif =       "ci5prbqz7jXyFPVWKkHhPq4a9N8Dag3TpeRfuqqC2Nfr7gSqx1fy"
+bad_privkey_wif =   "ci5prbqz7jXyFPVWKkHhPq4a9N8Dag3TpeRfuqqC2Nfr7gSqx1fx"
 pubkey_hex =        "031dc1e49cfa6ae15edd6fa871a91b1f768e6f6cab06bf7a87ac0d8beb9229075b"
 p2pkh_addr =        "noxKJyGPugPRN4wqvrwsrtYXuQCk7yQEsy"
 utxo_scriptpubkey =  "76a914d8c43e6f68ca4ea1e9b93da2d1e3a95118fa4a7c88ac"
