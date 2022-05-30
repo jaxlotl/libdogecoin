@@ -129,8 +129,10 @@ void signing_menu(int txindex, int is_testnet) {
     int input_to_sign;
     char* raw_hexadecimal_tx;
     char* script_pubkey;
+    char* input_amount_str;
     long double input_amount;
     char* private_key_wif;
+    char* p;
     while (running) {
         printf("\n 1. sign input (from current working transaction)\n");
         printf(" 2. sign input (raw hexadecimal transaction)\n");
@@ -138,7 +140,10 @@ void signing_menu(int txindex, int is_testnet) {
         printf(" 4. go back\n\n");
         switch (atoi(getl("command"))) {
                 case 1:
-                    input_amount = atoll(getl("input amount")); // 2 & 10
+                    input_amount_str = (char*)getl("input amount");
+                    for (p=input_amount_str; *p!='\0'; p++);
+                    input_amount = strtold(input_amount_str, &p); // 2 & 10
+                    printf("AMOUNT TO SIGN: %Lf\n", input_amount);
                     input_to_sign = atoi(getl("input to sign")); // 0
                     private_key_wif = (char*)get_private_key("private_key"); // ci5prbqz7jXyFPVWKkHhPq4a9N8Dag3TpeRfuqqC2Nfr7gSqx1fy
                     script_pubkey = dogecoin_private_key_wif_to_script_hash(private_key_wif);
@@ -150,7 +155,10 @@ void signing_menu(int txindex, int is_testnet) {
                     } else printf("transaction input successfully signed!\n");
                     break;
                 case 2:
-                    input_amount = atol(getl("input amount")); // 2 & 10
+                    input_amount_str = (char*)getl("input amount");
+                    for (p=input_amount_str; *p!='\0'; p++);
+                    input_amount = strtold(input_amount_str, &p); // 2 & 10
+                    printf("AMOUNT TO SIGN: %Lf\n", input_amount);
                     input_to_sign = atoi(getl("input to sign")); // 0
                     private_key_wif = (char*)get_private_key("private_key"); // ci5prbqz7jXyFPVWKkHhPq4a9N8Dag3TpeRfuqqC2Nfr7gSqx1fy
                     script_pubkey = dogecoin_private_key_wif_to_script_hash(private_key_wif);
@@ -180,7 +188,9 @@ void sub_menu(int txindex, int is_testnet) {
     int temp_vout_index;
     char* temp_hex_utxo_txid;
     const char* temp_ext_p2pkh;
-    uint64_t temp_amt;
+    char* temp_amt_str;
+    long double temp_amt;
+    char* p;
     char* output_address;
     double desired_fee;
     double total_amount_for_verification;
@@ -205,7 +215,9 @@ void sub_menu(int txindex, int is_testnet) {
                     printf("raw_tx: %s\n", get_raw_transaction(txindex));
                     break;
                 case 2:
-                    temp_amt = atof(getl("amount to send to destination address")); // 5
+                    temp_amt_str = getl("amount to send to destination address");
+                    for (p=temp_amt_str; *p!='\0'; p++);
+                    temp_amt = strtold(temp_amt_str, &p); // 2 & 10
                     temp_ext_p2pkh = getl("destination address"); // nbGfXLskPh7eM1iG5zz5EfDkkNTo9TRmde
                     printf("destination: %s\n", temp_ext_p2pkh);
                     printf("addout success: %d\n", add_output(txindex, (char*)temp_ext_p2pkh, temp_amt));
