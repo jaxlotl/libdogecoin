@@ -1,7 +1,6 @@
 """Testing module for wrappers from transaction.c"""
 
 import inspect
-import time
 import unittest
 import libdogecoin as l
 
