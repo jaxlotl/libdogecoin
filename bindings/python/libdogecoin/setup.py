@@ -24,7 +24,7 @@ class BuildDepends(Command):
 libdoge_extension = [Extension(
     name=               "libdogecoin",
     language=           "c",
-    sources=            ["bindings/py_wrappers/libdogecoin/libdogecoin.pyx"],
+    sources=            ["bindings/python/libdogecoin/libdogecoin.pyx"],
     include_dirs=       [".",
                         "include",
                         "include/dogecoin",
