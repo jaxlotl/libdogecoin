@@ -308,7 +308,8 @@ int add_output(int txindex, char* destinationaddress, long double amount) {
  * @param amount 
  * @return int 
  */
-static int make_change(int txindex, char* public_key, float subtractedfee, uint64_t amount) {
+static int make_change(int txindex, char* public_key, uint64_t subtractedfee, uint64_t amount) {
+    if (amount==subtractedfee) return false; // utxos already fully spent, no change needed // TODO: should this be true? will increment p2pkh_count
     // find working transaction by index and pass to funciton local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
 
@@ -319,7 +320,7 @@ static int make_change(int txindex, char* public_key, float subtractedfee, uint6
     const dogecoin_chainparams* chain = (public_key[0] == 'D') ? &dogecoin_chainparams_main : &dogecoin_chainparams_test;
 
     // calculate total minus fees
-    uint64_t total_change_back = (uint64_t)amount - (uint64_t)subtractedfee;
+    uint64_t total_change_back = amount - subtractedfee;
 
     return dogecoin_tx_add_address_out(tx->transaction, chain, total_change_back, public_key);
 }
@@ -346,11 +347,11 @@ char* finalize_transaction(int txindex, char* destinationaddress, double subtrac
     // determine intended network by checking address prefix:
     int is_testnet = chain_from_b58_prefix_bool(destinationaddress);
 
-    subtractedfee = coins_to_koinu(subtractedfee);
-    out_dogeamount_for_verification = coins_to_koinu(out_dogeamount_for_verification);
+    uint64_t subtractedfee_k = coins_to_koinu(subtractedfee);
+    uint64_t out_dogeamount_for_verification_k = coins_to_koinu(out_dogeamount_for_verification);
 
     // calculate total minus desired fees
-    uint64_t total = (uint64_t)out_dogeamount_for_verification - (uint64_t)subtractedfee;
+    uint64_t total = out_dogeamount_for_verification_k - subtractedfee_k;
 
     int i, p2pkh_count = 0;
     uint64_t tx_out_total = 0;
@@ -365,17 +366,20 @@ char* finalize_transaction(int txindex, char* destinationaddress, double subtrac
         p2pkh_count = dogecoin_script_hash_to_p2pkh(tx_out_tmp, (char *)p2pkh, is_testnet);
         if (i == (int)tx->transaction->vout->len - 1 && sender_p2pkh) {
             // manually make change and send back to our public key address
-            p2pkh_count += make_change(txindex, sender_p2pkh, subtractedfee, out_dogeamount_for_verification - tx_out_total);
-            tx_out_tmp = vector_idx(tx->transaction->vout, tx->transaction->vout->len - 1);
-            tx_out_total += tx_out_tmp->value;
+            if (make_change(txindex, sender_p2pkh, subtractedfee_k, out_dogeamount_for_verification_k - tx_out_total)) {
+                p2pkh_count += 1;
+                tx_out_tmp = vector_idx(tx->transaction->vout, tx->transaction->vout->len - 1);
+                tx_out_total += tx_out_tmp->value;
+            }
             break;
         }
     }
 
-    if (p2pkh_count != 2) {
-        printf("p2pkh address not found from any output script hash!\n");
-        return false;
-    }
+    // TODO: what should this be changed to?
+    // if (p2pkh_count != 2) {
+    //     printf("p2pkh address not found from any output script hash!\n");
+    //     return false;
+    // }
 
     // pass in transaction obect, network paramters, amount of dogecoin to send to address and finally p2pkh address:
     return tx_out_total == total ? get_raw_transaction(txindex) : false;
