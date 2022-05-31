@@ -283,7 +283,7 @@ int add_utxo(int txindex, char* hex_utxo_txid, int vout) {
  * @param amount 
  * @return int 
  */
-int add_output(int txindex, char* destinationaddress, double amount) {
+int add_output(int txindex, char* destinationaddress, long double amount) {
     // find working transaction by index and pass to funciton local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
     // guard against null pointer exceptions
@@ -336,7 +336,7 @@ static int make_change(int txindex, char* public_key, float subtractedfee, uint6
  * @param sender_p2pkh 
  * @return char* 
  */
-char* finalize_transaction(int txindex, char* destinationaddress, double subtractedfee, double out_dogeamount_for_verification, char* sender_p2pkh) {
+char* finalize_transaction(int txindex, char* destinationaddress, long double subtractedfee, long double out_dogeamount_for_verification, char* sender_p2pkh) {
     // find working transaction by index and pass to funciton local variable to manipulate:
     working_transaction* tx = find_transaction(txindex);
 
@@ -431,7 +431,7 @@ void clear_transaction(int txindex) {
  * @param privkey 
  * @return char*  
  */
-int sign_raw_transaction(int inputindex, char* incomingrawtx, char* scripthex, int sighashtype, double amount, char* privkey) {
+int sign_raw_transaction(int inputindex, char* incomingrawtx, char* scripthex, int sighashtype, long double amount, char* privkey) {
     if(!incomingrawtx || !scripthex) return false;
 
     if (strlen(incomingrawtx) > 1024*100) { //don't accept tx larger then 100kb
@@ -549,7 +549,7 @@ int sign_raw_transaction(int inputindex, char* incomingrawtx, char* scripthex, i
  * @param privkey 
  * @return int 
  */
-int sign_indexed_raw_transaction(int txindex, int inputindex, char* incomingrawtx, char* scripthex, int sighashtype, double amount, char* privkey) {
+int sign_indexed_raw_transaction(int txindex, int inputindex, char* incomingrawtx, char* scripthex, int sighashtype, long double amount, char* privkey) {
     if (!txindex) return false;
     if (!sign_raw_transaction(inputindex, incomingrawtx, scripthex, sighashtype, amount, privkey)) {
         printf("error signing raw transaction\n");
