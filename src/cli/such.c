@@ -143,7 +143,6 @@ void signing_menu(int txindex, int is_testnet) {
                     input_amount_str = (char*)getl("input amount");
                     for (p=input_amount_str; *p!='\0'; p++);
                     input_amount = strtold(input_amount_str, &p); // 2 & 10
-                    printf("AMOUNT TO SIGN: %Lf\n", input_amount);
                     input_to_sign = atoi(getl("input to sign")); // 0
                     private_key_wif = (char*)get_private_key("private_key"); // ci5prbqz7jXyFPVWKkHhPq4a9N8Dag3TpeRfuqqC2Nfr7gSqx1fy
                     script_pubkey = dogecoin_private_key_wif_to_script_hash(private_key_wif);
@@ -158,7 +157,6 @@ void signing_menu(int txindex, int is_testnet) {
                     input_amount_str = (char*)getl("input amount");
                     for (p=input_amount_str; *p!='\0'; p++);
                     input_amount = strtold(input_amount_str, &p); // 2 & 10
-                    printf("AMOUNT TO SIGN: %Lf\n", input_amount);
                     input_to_sign = atoi(getl("input to sign")); // 0
                     private_key_wif = (char*)get_private_key("private_key"); // ci5prbqz7jXyFPVWKkHhPq4a9N8Dag3TpeRfuqqC2Nfr7gSqx1fy
                     script_pubkey = dogecoin_private_key_wif_to_script_hash(private_key_wif);
