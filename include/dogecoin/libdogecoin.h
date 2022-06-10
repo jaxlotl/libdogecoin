@@ -50,7 +50,7 @@ int add_output(int txindex, char* destinationaddress, long double amount);
 
 /* finalize the transaction being worked on at (txindex), with the (destinationaddress) paying a fee of (subtractedfee), */
 /* re-specify the amount in dogecoin for verification, and change address for change. If not specified, change will go to the first utxo's address. */
-char* finalize_transaction(int txindex, char* destinationaddress, double subtractedfee, uint64_t out_dogeamount_for_verification, char* changeaddress);
+char* finalize_transaction(int txindex, char* destinationaddress, long double subtractedfee, long double out_dogeamount_for_verification, char* public_key);
 
 /* sign a raw transaction in memory at (txindex), sign (inputindex) with (scripthex) of (sighashtype) for (amount - koinu? dogecoin? why a 3rd time), with (privkey) */
 int sign_transaction(int txindex, long double amounts[], char* script_pubkey, char* privkey);
