@@ -28,19 +28,16 @@ libdoge_extension = [Extension(
     include_dirs=       [".",
                         "include",
                         "include/dogecoin",
-                        "include/dogecoin/",
                         "secp256k1/include"],
     libraries =         ["event", "event_core", "pthread", "m"],
     library_dirs =      ["depends/" + depends_lib + "/lib"],
-    extra_objects=      [".libs/libdogecoin.a", 
-                        "src/secp256k1/.libs/libsecp256k1.a", 
-                        "src/secp256k1/.libs/libsecp256k1_precomputed.a"],
+    extra_objects=      [".libs/libdogecoin.a"],
     extra_compile_args= ["--static", "-fPIC"]
 )]
 
 setup(
     name=               "libdogecoin",
-    version=            "0.5",
+    version=            "0.0.1",
     description=        "Python interface for the libdogecoin C library",
     author=             "Jackie McAninch",
     author_email=       "jackie.mcaninch.2019@gmail.com",
