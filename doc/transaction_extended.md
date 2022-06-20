@@ -1,6 +1,7 @@
-# Dogecoin Transactions
+# Extended Transaction Information
 
-tx describes a dogecoin transaction in reply to getdata. When a bloom filter is applied tx objects are sent automatically for matching transactions following the merkleblock.
+## Dogecoin Transaction Object
+The dogecoin_tx object describes a dogecoin transaction in reply to getdata. When a bloom filter is applied tx objects are sent automatically for matching transactions following the merkleblock. It is composed of the following fields:
 
 | Field Size      | Description | Data type | Comments |
 | ----------- | ----------- | - | - |
@@ -13,13 +14,59 @@ tx describes a dogecoin transaction in reply to getdata. When a bloom filter is 
 | 0+      | tx_witnesses | tx_witness[] |  	A list of witnesses, one for each input; omitted if flag is omitted above |
 | 4   | lock_time        | uint32_t | The block number or timestamp at which this transaction is unlocked: 0 == not locked, < 500000000 == Block number at which this transaction is unlocked, >= 500000000 == UNIX timestamp at which this transaction is unlocked. If all TxIn have final (0xffffffff) sequence numbers then lock_time is irrelevant. Otherwise, the transaction may not be added to a block until after lock_time (see NLockTime). |
 
-## Simple Transactions
+Structure definition as found in tx.h:
+```
+typedef struct dogecoin_tx_ {
+    int32_t version;
+    vector* vin;
+    vector* vout;
+    uint32_t locktime;
+} dogecoin_tx;
+```
+
+## Dogecoin Transaction Inputs and Outputs
+Every transaction is composed of inputs and outputs, which specify where the funds came from and where they will go. These are represented by the dogecoin_tx_in object and dogecoin_tx_out object.
+
+The dogecoin_tx_in object consists of the following fields:
+| Field Size      | Description | Data type | Comments |
+| ----------- | ----------- | - | - |
+| 36 | previous_output | outpoint | The previous output transaction reference, as an Outpoint structure |
+| 1+ | script_length | var_int | The length of the signature script |
+| ? | signature_script | uchar[] | Computational Script for confirming transaction authorization |
+| 4 | sequence | uint32_t | Transaction version as defined by the sender. Intended for "replacement" of transactions when information is updated before inclusion into a block. |
+
+Structure definition as found in tx.h:
+```
+typedef struct dogecoin_tx_in_ {
+    dogecoin_tx_outpoint prevout;
+    cstring* script_sig;
+    uint32_t sequence;
+    vector* witness_stack;
+} dogecoin_tx_in;
+```
+
+The dogecoin_tx_out object consists of the following fields:
+| Field Size      | Description | Data type | Comments |
+| ----------- | ----------- | - | - |
+| 32 | hash | char[32] | The hash of the referenced transaction |
+| 4 | index | uint32_t | The index of the specific output in the transaction. The first output is 0, etc. |
+
+Structure definition as found in tx.h:
+```
+typedef struct dogecoin_tx_outpoint_ {
+    uint256 hash;
+    uint32_t n;
+} dogecoin_tx_outpoint;
+```
+
+The script structure consists of a series of pieces of information and operations related to the value of the transaction. When notating scripts, data to be pushed to the stack is generally enclosed in angle brackets and data push commands are omitted. Non-bracketed words are opcodes. These examples include the "OP_" prefix, but it is permissible to omit it. Thus “<pubkey1> <pubkey2> OP_2 OP_CHECKMULTISIG” may be abbreviated to “<pubkey1> <pubkey2> 2 CHECKMULTISIG”. Note that there is a small number of standard script forms that are relayed from node to node; non-standard scripts are accepted if they are in a block, but nodes will not relay them.
+
+
+## Transaction Generation Tutorial (Using Core)
 
 Below is an adapted tutorial of bitcoin developers transaction tutorial that will demonstrate how to generate a raw transaction with the goal of spending a dogecoin UTXO. It will describe how to use Dogecoin Core's RPC (remote procedure call) interface in addition to how that's been implemented within libdogecoin. Regardless of the application you use to interact with Dogecoin, the data described (variables, concepts, etc) should remain applicable and relevant.
 
 In order to get hands on experience while learning below you will need to setup a Dogecoin Core node and create a regtest (regression test mode) environment with 50 DOGE in your test wallet.
-
-### Simple Spending
 
 Let's look at our new nodes wallet:
 ```
@@ -191,4 +238,3 @@ Now we will build our transaction using te shell variables we just set for UTXO_
 We provided 2 arguments to the "createrawtransaction" RPC interface to create our raw transaction. The first argument is a JSON array holding a reference to the transaction identifier (txid) and the index number of the output from the UTXO we want to spend. The second argument is a JSON object which contains the address we want to send to (public key hash) and the number of dogecoins we want to send that address. We then save the ouputted raw hexadecimal formatted transaction in a shell variable we can easily access in the next step.
 
 An important note to emphasize is that "createrawtransaction" does not automatically create change outputs, so one can easily make an accident paying a large transaction fee from the remainder left over (input amount - amount we're sending to the public key hash). 
-
