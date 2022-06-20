@@ -39,13 +39,19 @@ libdoge_extension = [Extension(
 )]
 
 setup(
-    name=               "libdogecoin",
-    version=            "0.5",
-    description=        "Python interface for the libdogecoin C library",
-    author=             "Jackie McAninch",
-    author_email=       "jackie.mcaninch.2019@gmail.com",
-    license=            "MIT",
-    cmdclass =          {'build_ext': build_ext,
-                         'build_depends': BuildDepends},
-    ext_modules=        cythonize(libdoge_extension, language_level = "3")
+    name=                           "libdogecoin",
+    version=                        "0.1", 
+    author=                         "Jackie McAninch",
+    author_email=                   "jackie.mcaninch.2019@gmail.com",
+    description=                    "Python interface for the libdogecoin C library",
+    long_description=               open("PYPI_README.md", "r").read(),
+    long_description_content_type=  "text/markdown",
+    license=                        "MIT",
+    url=                            "https://github.com/dogecoinfoundation/libdogecoin",
+    classifiers=                    ["Programming Language :: Python :: 3",
+                                     "License :: OSI Approved :: MIT License",
+                                     "Operating System :: POSIX :: Linux"],
+    cmdclass =                      {'build_ext': build_ext,
+                                     'build_depends': BuildDepends},
+    ext_modules=                    cythonize(libdoge_extension, language_level = "3")
 )
