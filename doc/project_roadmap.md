@@ -1,4 +1,4 @@
-### Project stages
+# Project stages
 
 We understand that there's a steep lerning curve for most of the folk working
 on this project, and that's OK. This is an inflection point for the Dogecoin 
@@ -46,17 +46,3 @@ can be easily ported to libdogecoin so it can operate directly on L1 to transact
 dogecoin. This will be the first major project using libdogecoin via a language
 binding, and prove the ability for libdogecoin to enable greater flexibility in
 how the community can get involved in development.
-
-### Current features
-----------------
-* Generating and storing private and public keys
-* ECDSA secp256k1 signing and verification (through [libsecp256k1](https://github.com/bitcoin-core/secp256k1) included as git subtree)
-* Generate recoverable signatures (and recover pubkey from signatures)
-* BIP32 hierarchical deterministic key derivation
-* Transaction generation, manipulation, signing and ser-/deserialization including P2PKH, P2SH, multisig
-* Address generation
-* Base58check encoding
-* Native implementation of SHA256, SHA512, SHA512_HMAC, RIPEMD-160 including NIST testvectors
-* Native constant time AES (+256CBC) cipher implementation including NIST testvectors
-* Keystore (wallet) databases (through logdb https://github.com/liblogdb/liblogdb)
-* Event based dogecoin P2P client capable of connecting to multiple nodes in a single thread (requires [libevent](https://github.com/libevent/libevent))
